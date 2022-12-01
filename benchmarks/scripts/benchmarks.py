@@ -205,6 +205,7 @@ class HudiBenchmarkSpec(BenchmarkSpec):
     """
     def __init__(self, hudi_version, benchmark_main_class, main_class_args=None, **kwargs):
         hudi_spark_confs = [
+            "spark.serializer=org.apache.spark.serializer.KryoSerializer",
             "spark.sql.extensions=org.apache.spark.sql.hudi.HoodieSparkSessionExtension",
             "spark.sql.catalog.spark_catalog=org.apache.spark.sql.hudi.catalog.HoodieCatalog",
             "spark.sql.catalog.spark_catalog.type=hive",
