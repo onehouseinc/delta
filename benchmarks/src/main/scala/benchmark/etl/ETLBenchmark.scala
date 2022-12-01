@@ -88,14 +88,36 @@ class ETLBenchmark(conf: ETLBenchmarkConf) extends Benchmark(conf) {
   val sourceFormat = "parquet"
   val formatName = conf.formatName
   val writeMode = conf.writeMode
-  val tblProperties = if (formatName == "iceberg") {
-    s"""TBLPROPERTIES ('format-version'='2',
+  val tblProperties = formatName match {
+    case "iceberg" =>
+      s"""TBLPROPERTIES ('format-version'='2',
                        'write.delete.mode'='${writeMode}',
                        'write.update.mode'='${writeMode}',
                        'write.merge.mode'='${writeMode}')"""
-  } else {
-    ""
+    case "hudi" =>
+      // NOTE: This is only used to create single (denormalized) store_sales table;
+      //       as such we're reusing primary key we're generally using for store_sales in TPC-DS benchmarks
+      s"""TBLPROPERTIES (
+         |  type = '${if (writeMode == "copy-on-write") "cow" else "mor"}',
+         |  primaryKey = 'ss_item_sk,ss_ticket_number',
+         |  precombineField = '',
+         |  'hoodie.table.name' = 'store_sales_denorm_${formatName}',
+         |  'hoodie.table.partition.fields' = 'ss_sold_date_sk',
+         |  'hoodie.table.keygenerator.class' = 'org.apache.hudi.keygen.ComplexKeyGenerator',
+         |  'hoodie.parquet.compression.codec' = 'snappy',
+         |  'hoodie.datasource.write.hive_style_partitioning' = 'true',
+         |  'hoodie.populate.meta.fields' = 'false',
+         |  'hoodie.metadata.enable' = 'false',
+         |  'hoodie.datasource.write.operation'= 'bulk_insert',
+         |  'hoodie.combine.before.insert'= 'false',
+         |  'hoodie.sql.insert.mode'= 'non-strict',
+         |  'hoodie.sql.bulk.insert.enable'= 'true',
+         |  'hoodie.bulkinsert.sort.mode'= 'NONE'
+         |)""".stripMargin
+
+    case "delta" => ""
   }
+
   require(conf.scaleInGB > 0)
   require(Seq(1, 1000, 3000).contains(conf.scaleInGB), "")
   val sourceLocation = conf.sourcePath.getOrElse {
