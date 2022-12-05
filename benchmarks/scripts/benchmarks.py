@@ -43,6 +43,11 @@ class BenchmarkSpec:
         self.benchmark_main_class_args = main_class_args
         self.extra_spark_shell_args = extra_spark_shell_args
 
+        self.spark_confs.extend([
+            # "spark.driver.defaultJavaOptions=-XX:+UseG1GC",
+            # "spark.executor.defaultJavaOptions=-XX:+UseG1GC"
+        ])
+
     def append_spark_conf(self, new_conf):
         if isinstance(new_conf, str):
             self.spark_confs.append(new_conf)
