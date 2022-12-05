@@ -69,6 +69,11 @@ object ETLBenchmarkConf {
         .valueName("<number of iterations>")
         .action((x, c) => c.copy(iterations = x.toInt))
         .text("Number of times to run the queries"),
+      opt[String]("db-name")
+        .optional()
+        .valueName("<database name>")
+        .action((x, c) => c.copy(userDefinedDbName = Some(x)))
+        .text("Name of the target database to create with ETL Prep tables in necessary format"),
       opt[String]("write_mode")
         .optional()
         .valueName("<copy-on-write or merge-on-read>")
