@@ -31,7 +31,7 @@ class BenchmarkSpec:
     """
     def __init__(
             self, format_name, maven_artifacts, spark_confs,
-            benchmark_main_class, main_class_args, extra_spark_shell_args=None, **kwargs):
+            benchmark_main_class, main_class_args, extra_spark_shell_args=None, jar_artifacts=None, **kwargs):
         if main_class_args is None:
             main_class_args = []
         if extra_spark_shell_args is None:
@@ -42,6 +42,7 @@ class BenchmarkSpec:
         self.benchmark_main_class = benchmark_main_class
         self.benchmark_main_class_args = main_class_args
         self.extra_spark_shell_args = extra_spark_shell_args
+        self.jar_artifacts = jar_artifacts
 
         self.spark_confs.extend([
             # "spark.driver.defaultJavaOptions=-XX:+UseG1GC",
@@ -70,6 +71,7 @@ class BenchmarkSpec:
         spark_submit_cmd = (
             f"spark-submit {spark_shell_args_str} " +
             (f"--packages {self.maven_artifacts} " if self.maven_artifacts else "") +
+            (f"--jars {self.jar_artifacts} " if self.jar_artifacts else "") +
             f"{spark_conf_str} --class {self.benchmark_main_class} " +
             f"{benchmark_jar_path} {main_class_args}"
         )
@@ -82,10 +84,11 @@ class BenchmarkSpec:
             print(f"conf={conf}")
             spark_conf_str += f"""--conf "{conf}" """
         spark_shell_args_str = ' '.join(self.extra_spark_shell_args)
+        jars = benchmark_jar_path + (f",{self.jar_artifacts}" if self.jar_artifacts else "")
         spark_shell_cmd = (
                 f"spark-shell {spark_shell_args_str} " +
                 (f"--packages {self.maven_artifacts} " if self.maven_artifacts else "") +
-                f"{spark_conf_str} --jars {benchmark_jar_path} -I {benchmark_init_file_path}"
+                f"{spark_conf_str} --jars {jars} -I {benchmark_init_file_path}"
         )
         print(spark_shell_cmd)
         return spark_shell_cmd
