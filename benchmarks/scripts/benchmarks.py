@@ -221,7 +221,9 @@ class HudiBenchmarkSpec(BenchmarkSpec):
 
         super().__init__(
             format_name="hudi",
-            maven_artifacts=f"org.apache.hudi:hudi-spark3.3-bundle_2.12:{hudi_version}",
+            # maven_artifacts=f"org.apache.hudi:hudi-spark3.3-bundle_2.12:{hudi_version}",
+            maven_artifacts=None,
+            jar_artifacts=f"/home/hadoop/hudi-spark3.3-bundle_2.12-0.13.0-SNAPSHOT.jar",
             spark_confs=hudi_spark_confs,
             benchmark_main_class=benchmark_main_class,
             main_class_args=main_class_args,
